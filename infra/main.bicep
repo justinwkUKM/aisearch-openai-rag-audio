@@ -85,7 +85,13 @@ param principalId string = ''
 
 var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
-var tags = { 'azd-env-name': environmentName }
+// var tags = { 'azd-env-name': environmentName }
+var tags = {
+  'azd-env-name': 'Dev'
+  'Project_Code': 'chatbot'
+  'environment': 'Dev'
+  'Owner': 'wobeidy@mobizinc.com'
+}
 
 @description('Whether the deployment is running on GitHub Actions')
 param runningOnGh string = ''
