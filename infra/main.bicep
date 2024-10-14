@@ -87,7 +87,7 @@ var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 // var tags = { 'azd-env-name': environmentName }
 var tags = {
-  'azd-env-name': 'Dev'
+  'azd-env-name': environmentName
   'Project_Code': 'chatbot'
   'environment': 'Dev'
   'Owner': 'wobeidy@mobizinc.com'

@@ -13,6 +13,7 @@ import useAudioPlayer from "@/hooks/useAudioPlayer";
 import { GroundingFile, ToolResult } from "./types";
 
 import logo from "./assets/logo.svg";
+import logoxl from "./assets/logo-xl.png";
 
 function App() {
     const [isRecording, setIsRecording] = useState(false);
@@ -65,7 +66,7 @@ function App() {
     return (
         <div className="flex min-h-screen flex-col bg-gray-100 text-gray-900">
             <div className="p-4 sm:absolute sm:left-4 sm:top-4">
-                <img src={logo} alt="Azure logo" className="h-16 w-16" />
+                <img src={logoxl} alt="Mobiz logo" className="h-16 w-16" />
             </div>
             <main className="flex flex-grow flex-col items-center justify-center">
                 <h1 className="mb-8 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-bold text-transparent md:text-7xl">
@@ -94,7 +95,7 @@ function App() {
             </main>
 
             <footer className="py-4 text-center">
-                <p>Built with Azure AI Search + Azure OpenAI</p>
+                <p>Updated by Mobiz. Built with Azure AI Search + Azure OpenAI</p>
             </footer>
 
             <GroundingFileView groundingFile={selectedFile} onClosed={() => setSelectedFile(null)} />
