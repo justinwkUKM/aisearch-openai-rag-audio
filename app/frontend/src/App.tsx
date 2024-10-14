@@ -12,7 +12,6 @@ import useAudioPlayer from "@/hooks/useAudioPlayer";
 
 import { GroundingFile, ToolResult } from "./types";
 
-import logo from "./assets/logo.svg";
 import logoxl from "./assets/logo-xl.png";
 
 function App() {
@@ -66,16 +65,19 @@ function App() {
     return (
         <div className="flex min-h-screen flex-col bg-gray-100 text-gray-900">
             <div className="p-4 sm:absolute sm:left-4 sm:top-4">
-                <img src={logoxl} alt="Mobiz logo" className="h-16 w-16" />
+                <img src={logoxl} alt="Mobiz logo" className="h-16 w-32" />
             </div>
             <main className="flex flex-grow flex-col items-center justify-center">
-                <h1 className="mb-8 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-4xl font-bold text-transparent md:text-7xl">
-                    Talk to your data
+                <h1 className="mb-8 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-4xl font-bold text-transparent md:text-7xl">
+                    Speak to your data!
                 </h1>
+                <h2 className="mb-8 bg-clip-text text-xl font-bold md:text-xl">
+                    Talk to your data securely with AzureOpenai GPT-4o Realtime Model
+                </h2>
                 <div className="mb-4 flex flex-col items-center justify-center">
                     <Button
                         onClick={onToggleListening}
-                        className={`h-12 w-60 ${isRecording ? "bg-red-600 hover:bg-red-700" : "bg-purple-500 hover:bg-purple-600"}`}
+                        className={`h-12 w-60 ${isRecording ? "bg-red-600 hover:bg-red-700" : "bg-blue-500 hover:bg-blue-600"}`}
                         aria-label={isRecording ? "Stop recording" : "Start recording"}
                     >
                         {isRecording ? (
