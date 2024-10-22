@@ -6,7 +6,7 @@ type Properties = {
 
 export default function StatusMessage({ isRecording }: Properties) {
     if (!isRecording) {
-        return <p className="text mb-4 mt-6">Ask anything about LemonMint Solutions</p>;
+        return <p className="text mb-4 mt-6">Ask Sarah, anything about LemonMint Solutions</p>;
     }
 
     return (

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mic, MicOff } from "lucide-react";
+import Webcam from "react-webcam";
 
 import { Button } from "@/components/ui/button";
 import { GroundingFiles } from "@/components/ui/grounding-files";
@@ -18,6 +19,8 @@ function App() {
     const [isRecording, setIsRecording] = useState(false);
     const [groundingFiles, setGroundingFiles] = useState<GroundingFile[]>([]);
     const [selectedFile, setSelectedFile] = useState<GroundingFile | null>(null);
+    const [showWebcam, setShowWebcam] = useState(true);
+
 
     const { startSession, addUserAudio, inputAudioBufferClear } = useRealTime({
         onWebSocketOpen: () => console.log("WebSocket connection opened"),
@@ -45,6 +48,12 @@ function App() {
 
     const { reset: resetAudioPlayer, play: playAudio, stop: stopAudioPlayer } = useAudioPlayer();
     const { start: startAudioRecording, stop: stopAudioRecording } = useAudioRecorder({ onAudioRecorded: addUserAudio });
+
+    useEffect(() => {
+        // Show the webcam as soon as the window loads
+        setShowWebcam(true);
+    }, []);
+
 
     const onToggleListening = async () => {
         if (!isRecording) {
@@ -77,7 +86,7 @@ function App() {
                 <div className="mb-4 flex flex-col items-center justify-center">
                     <Button
                         onClick={onToggleListening}
-                        className={`h-12 w-60 ${isRecording ? "bg-red-600 hover:bg-red-700" : "bg-blue-500 hover:bg-blue-600"}`}
+                        className={`h-12 w-36 ${isRecording ? "bg-red-600 hover:bg-red-700" : "bg-blue-500 hover:bg-blue-600"}`}
                         aria-label={isRecording ? "Stop recording" : "Start recording"}
                     >
                         {isRecording ? (
@@ -101,6 +110,17 @@ function App() {
             </footer>
 
             <GroundingFileView groundingFile={selectedFile} onClosed={() => setSelectedFile(null)} />
+
+            {/* Webcam component fixed at the bottom corner of the screen */}
+            {showWebcam && (
+                <div
+                    className="fixed bottom-4 right-4 w-64 h-48 border border-gray-300 shadow-lg rounded-md overflow-hidden bg-black"
+                >
+                    <Webcam audio={false} />
+                </div>
+            )}
+
+
         </div>
     );
 }

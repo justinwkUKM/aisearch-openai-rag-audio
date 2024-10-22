@@ -6,6 +6,7 @@ from azure.identity import DefaultAzureCredential
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.aio import SearchClient
 from azure.search.documents.models import VectorizableTextQuery
+from azure.communication.email import EmailClient
 from rtmt import RTMiddleTier, Tool, ToolResult, ToolResultDirection
 
 _search_tool_schema = {
@@ -61,6 +62,31 @@ _current_date_tool_schema = {
     }
 }
 
+_email_tool_schema = {
+    "type": "function",
+    "name": "send_email",
+    "description": "Send an email using Azure Communication Services.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "to": {
+                "type": "string",
+                "description": "Recipient email address"
+            },
+            "subject": {
+                "type": "string",
+                "description": "Subject of the email"
+            },
+            "body": {
+                "type": "string",
+                "description": "Body content of the email"
+            }
+        },
+        "required": ["to", "subject", "body"],
+        "additionalProperties": False
+    }
+}
+
 async def _search_tool(search_client: SearchClient, args: Any) -> ToolResult:
     print(f"Searching for '{args['query']}' in the knowledge base.")
     # Hybrid + Reranking query using Azure AI Search
@@ -105,6 +131,39 @@ async def _current_date_tool(args: Any) -> ToolResult:
     print(f"Current date is: {current_date}")
     return ToolResult(current_date, ToolResultDirection.TO_CLIENT)
 
+async def _send_email_tool(args: Any) -> ToolResult:
+    try:
+        connection_string = "endpoint=https://cs-email-aoai.unitedstates.communication.azure.com/;accesskey=1PWMyGsjFxdzgmzoaGi7EDTIRyKJ3C1UyD3nMRK0mkLza6ZZti1AJQQJ99AJACULyCp7RDgsAAAAAZCSA6WR"
+        client = EmailClient.from_connection_string(connection_string)
+        
+        message = {
+            "senderAddress": "DoNotReply@f84941f1-aa99-4d82-8123-d349938aa020.azurecomm.net",
+            "recipients": {
+                "to": [{"address": args["to"]}]
+            },
+            "content": {
+                "subject": args["subject"],
+                "plainText": args["body"],
+                "html": f"""
+                <html>
+                    <body>
+                        <p>Hello,</p>
+                        <p>Please use the following link to schedule a call with LemonMint Solutions: <a href='https://calendly.com/waqasobeidy/30min'>Calendly Meeting</a>.</p>
+                        <p>Best regards,<br/>SARAH</p>
+                    </body>
+                </html>"""
+            },
+        }
+
+        poller = client.begin_send(message)
+        result = poller.result()
+        print("Message sent: ", result.message_id)
+        return ToolResult(f"Email sent successfully. Message ID: {result.message_id}", ToolResultDirection.TO_CLIENT)
+    
+    except Exception as ex:
+        print(ex)
+        return ToolResult(f"Failed to send email: {str(ex)}", ToolResultDirection.TO_CLIENT)
+
 def attach_rag_tools(rtmt: RTMiddleTier, search_endpoint: str, search_index: str, credentials: AzureKeyCredential | DefaultAzureCredential) -> None:
     if not isinstance(credentials, AzureKeyCredential):
         credentials.get_token("https://search.azure.com/.default") # warm this up before we start getting requests
@@ -113,14 +172,18 @@ def attach_rag_tools(rtmt: RTMiddleTier, search_endpoint: str, search_index: str
     rtmt.tools["search"] = Tool(schema=_search_tool_schema, target=lambda args: _search_tool(search_client, args))
     rtmt.tools["report_grounding"] = Tool(schema=_grounding_tool_schema, target=lambda args: _report_grounding_tool(search_client, args))
     rtmt.tools["current_date"] = Tool(schema=_current_date_tool_schema, target=lambda args: _current_date_tool(args))
+    rtmt.tools["send_email"] = Tool(schema=_email_tool_schema, target=lambda args: _send_email_tool(args))
+
 
 # import re
 # from typing import Any
+# from datetime import datetime
 
 # from azure.identity import DefaultAzureCredential
 # from azure.core.credentials import AzureKeyCredential
 # from azure.search.documents.aio import SearchClient
 # from azure.search.documents.models import VectorizableTextQuery
+# from azure.communication.email import EmailClient
 # from rtmt import RTMiddleTier, Tool, ToolResult, ToolResultDirection
 
 # _search_tool_schema = {
@@ -164,6 +227,30 @@ def attach_rag_tools(rtmt: RTMiddleTier, search_endpoint: str, search_index: str
 #     }
 # }
 
+# _current_date_tool_schema = {
+#     "type": "function",
+#     "name": "current_date",
+#     "description": "Returns the current date in YYYY-MM-DD format.",
+#     "parameters": {
+#         "type": "object",
+#         "properties": {},
+#         "required": [],
+#         "additionalProperties": False
+#     }
+# }
+
+# _email_tool_schema = {
+#     "type": "function",
+#     "name": "send_email",
+#     "description": "Send an email with a meeting link to the user",
+#     "parameters": {
+#         "type": "object",
+#         "properties": {},
+#         "required": [],
+#         "additionalProperties": False
+#     }
+# }
+
 # async def _search_tool(search_client: SearchClient, args: Any) -> ToolResult:
 #     print(f"Searching for '{args['query']}' in the knowledge base.")
 #     # Hybrid + Reranking query using Azure AI Search
@@ -203,6 +290,42 @@ def attach_rag_tools(rtmt: RTMiddleTier, search_endpoint: str, search_index: str
 #         docs.append({"chunk_id": r['chunk_id'], "title": r["title"], "chunk": r['chunk']})
 #     return ToolResult({"sources": docs}, ToolResultDirection.TO_CLIENT)
 
+# async def _current_date_tool(args: Any) -> ToolResult:
+#     current_date = datetime.now().strftime("%Y-%m-%d")
+#     print(f"Current date is: {current_date}")
+#     return ToolResult(current_date, ToolResultDirection.TO_CLIENT)
+
+# async def _send_email_tool(args: Any) -> ToolResult:
+#     try:
+#         connection_string = "endpoint=https://cs-email-aoai.unitedstates.communication.azure.com/;accesskey=1PWMyGsjFxdzgmzoaGi7EDTIRyKJ3C1UyD3nMRK0mkLza6ZZti1AJQQJ99AJACULyCp7RDgsAAAAAZCSA6WR"
+#         client = EmailClient.from_connection_string(connection_string)
+        
+#         message = {
+#             "senderAddress": "DoNotReply@f84941f1-aa99-4d82-8123-d349938aa020.azurecomm.net",
+#             "recipients": {
+#                 "to": ["waqasobeidy@gmail.com", "waqasobeidy@outlook.com"]
+#             },
+#             "content": {
+#                 "subject": "Schedule a meeting with LemonMint Solutions",
+#                 "plainText": "Hi Waqas Khalid. Thanks for chatting with us over the call just now. Please follow the calendly link and book your appointment at your preferred time. https://calendly.com/waqasobeidy/30min Regards, LemonMint Solutions",
+#                 "html": f"""
+#                 <html>
+#                     <body>
+#                         <p>"Hi Waqas Khalid. Thanks for chatting with us over the call just now. Please follow the calendly link and book your appointment at your preferred time. https://calendly.com/waqasobeidy/30min Regards, LemonMint Solutions"</p>
+#                     </body>
+#                 </html>"""
+#             },
+#         }
+
+#         poller = client.begin_send(message)
+#         result = poller.result()
+#         print("Message sent: ", result.message_id)
+#         return ToolResult(f"Email sent successfully.", ToolResultDirection.TO_CLIENT)
+    
+#     except Exception as ex:
+#         print(ex)
+#         return ToolResult(f"Failed to send email: {str(ex)}", ToolResultDirection.TO_CLIENT)
+
 # def attach_rag_tools(rtmt: RTMiddleTier, search_endpoint: str, search_index: str, credentials: AzureKeyCredential | DefaultAzureCredential) -> None:
 #     if not isinstance(credentials, AzureKeyCredential):
 #         credentials.get_token("https://search.azure.com/.default") # warm this up before we start getting requests
@@ -210,3 +333,6 @@ def attach_rag_tools(rtmt: RTMiddleTier, search_endpoint: str, search_index: str
 
 #     rtmt.tools["search"] = Tool(schema=_search_tool_schema, target=lambda args: _search_tool(search_client, args))
 #     rtmt.tools["report_grounding"] = Tool(schema=_grounding_tool_schema, target=lambda args: _report_grounding_tool(search_client, args))
+#     rtmt.tools["current_date"] = Tool(schema=_current_date_tool_schema, target=lambda args: _current_date_tool(args))
+#     rtmt.tools["send_email"] = Tool(schema=_email_tool_schema, target=lambda args: _send_email_tool(args))
+
